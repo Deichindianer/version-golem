@@ -5,7 +5,6 @@ from flask_restful import Resource, Api
 from tinydb import TinyDB, Query
 from threading import Thread
 
-from alerts import version_checks
 from versions import get_latest_version
 
 
@@ -14,15 +13,18 @@ api = Api(app)
 db = TinyDB("db.json")
 
 
-class Repository(Resource):
+class Repositories(Resource):
 
-    def get(self, name):
+    def get(self, name=None):
         repository = Query()
+        if name is None:
+            return db.all()
         return db.search(repository.name == name)
 
-    def put(self, name):
+    def put(self, name=None):
         request_data = request.get_json(force=True)
         author = request_data["author"]
+        name = request_data["name"]
         latest_version = get_latest_version(f"{author}/{name}")
         repository = Query()
         db.upsert(
@@ -37,9 +39,10 @@ class Repository(Resource):
         return 200
 
 
-
-api.add_resource(Repository, "/repository/<string:name>")
-thread = Thread(target=version_checks, args=(db,))
-thread.daemon = True
-thread.start()
+api.add_resource(
+    Repositories,
+    "/repositories",
+    "/repositories/<string:name>",
+    defaults={"name": None}
+)
 app.run(host="0.0.0.0", debug=True)
