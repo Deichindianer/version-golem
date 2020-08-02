@@ -45,7 +45,9 @@ class Repositories(Resource):
                 "name": name,
                 "author": author,
                 "tracked_version": request_data["tracked_version"],
-                "latest_version": "To be updated"
+                "latest_version": "To be updated",
+                "latest_release_url": "To be updated",
+                "latest_version_publish_date": "To be updated"
             },
             repository.name == name
         )
