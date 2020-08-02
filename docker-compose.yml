@@ -1,0 +1,51 @@
+version: "3.3"
+services:
+  api:
+    container_name: "version-golem-api"
+    image: "version-golem-api:latest"
+    build:
+      context: "./api"
+      dockerfile: "Dockerfile"
+      cache_from:
+        - "version-golem-api:latest"
+    ports:
+      - "5000:5000"
+    networks:
+      - version-golem
+  version-updater:
+    container_name: "version-golem-version-updater"
+    image: "version-golem-version-updater:latest"
+    build:
+      context: "./version-updater"
+      dockerfile: "Dockerfile"
+      cache_from:
+        - "version-golem-version-updater:latest"
+    networks:
+      - version-golem
+    environment:
+      - "API_ENDPOINT=http://version-golem-api:5000"
+      - "UPDATE_INTERVAL=60"
+    depends_on:
+      - "api"
+  alert-manager:
+    container_name: "version-golem-alert-manager"
+    image: "version-golem-alert-manager:latest"
+    build:
+      context: "./alert-manager"
+      dockerfile: "Dockerfile"
+      cache_from:
+        - "version-golem-alert-manager:latest"
+    networks:
+      - version-golem
+    environment:
+      - "API_ENDPOINT=http://version-golem-api:5000"
+      - "ALERT_INTERVAL=60"
+      - "TEAMS_URL=https://example.com"
+    depends_on:
+      - "api"
+      - "version-updater"
+
+networks:
+  version-golem:
+    driver: bridge
+
